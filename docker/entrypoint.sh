@@ -7,6 +7,31 @@ DEFAULT_SOURCE="${APP_ROOT}/docker/default-source.sh"
 
 mkdir -p "${DATA_ROOT}"
 
+import_host_chipper_config() {
+    local host_cfg_dir="/vector-w2b1/chipper_config"
+    if [ ! -d "${host_cfg_dir}" ]; then
+        host_cfg_dir="${APP_ROOT}/host_chipper_config"
+    fi
+
+    if [ -d "${host_cfg_dir}" ]; then
+        mkdir -p "${DATA_ROOT}/chipper/session-certs"
+        mkdir -p "${DATA_ROOT}/chipper/jdocs"
+
+        # Copy certificate file (named like 0030263b)
+        if [ -f "${host_cfg_dir}/0030263b" ]; then
+            cp -a "${host_cfg_dir}/0030263b" "${DATA_ROOT}/chipper/session-certs/" || true
+        fi
+
+        # Copy jdocs and botSdkInfo into chipper/jdocs
+        if [ -f "${host_cfg_dir}/jdocs.json" ]; then
+            cp -a "${host_cfg_dir}/jdocs.json" "${DATA_ROOT}/chipper/jdocs/" || true
+        fi
+        if [ -f "${host_cfg_dir}/botSdkInfo.json" ]; then
+            cp -a "${host_cfg_dir}/botSdkInfo.json" "${DATA_ROOT}/chipper/jdocs/" || true
+        fi
+    fi
+}
+
 link_dir() {
     local rel_path="$1"
     local src_path="${APP_ROOT}/${rel_path}"
@@ -136,6 +161,7 @@ apply_env_overrides() {
     fi
 }
 
+import_host_chipper_config
 persist_directories
 persist_files
 

@@ -148,6 +148,7 @@ RUN apt-get update \
         git \ 
         iproute2 \ 
         libasound2 \ 
+        libatomic1 \
         libopus0 \ 
         libopusfile0 \ 
         libsodium23 \ 

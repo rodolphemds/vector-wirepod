@@ -15,6 +15,7 @@ services:
     volumes:
       - wire-pod-data:/data
       - wire-pod-images:/images
+      - ../vector-w2b1:/vector-w2b1:ro
     healthcheck:
       test: [ "CMD", "curl", "-fsS", "http://localhost:8080/ok" ]
       interval: 30s
