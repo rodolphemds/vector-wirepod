@@ -17,7 +17,10 @@ services:
     volumes:
       - wire-pod-data:/data
       - wire-pod-images:/images
-      - ../../vector-w2b1:/vector-w2b1:ro
+      - type: bind
+        source: ${VECTOR_W2B1_PATH:-../../vector-w2b1}
+        target: /vector-w2b1
+        read_only: true
     healthcheck:
       test: [ "CMD", "curl", "-fsS", "http://localhost:8080/ok" ]
       interval: 30s

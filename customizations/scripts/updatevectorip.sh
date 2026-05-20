@@ -1,6 +1,5 @@
-# Le but de ce script est de résoudre l'adresse IPv4 de l'hôte "vector.local", de l'exporter en tant que variable d'environnement et de mettre à jour un fichier de configuration défini avec cette adresse IP. 
-
 #!/usr/bin/env bash
+# Le but de ce script est de résoudre l'adresse IPv4 de l'hôte "vector.local", de l'exporter en tant que variable d'environnement et de mettre à jour un fichier de configuration défini avec cette adresse IP. 
 set -euo pipefail
 
 # Variables de configuration
