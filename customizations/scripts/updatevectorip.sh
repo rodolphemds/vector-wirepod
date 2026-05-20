@@ -65,7 +65,7 @@ replace_json_ip() {
 }
 
 if ! IP=$(resolve_host_ipv4 "$VECTOR"); then
-    echo "Erreur : impossible de resoudre l'IPv4 pour l'hote $VECTOR" >&2
+    echo "Erreur : impossible de résoudre l'IPv4 pour l'hôte $VECTOR" >&2
     exit 1
 fi
 
