@@ -3,7 +3,9 @@ services:
   wire-pod:
     container_name: wire-pod
     hostname: escapepod
-    build: .
+    build:
+      context: ..
+      dockerfile: customizations/dockerfile
     restart: unless-stopped
     environment:
       WIREPOD_DATA_DIR: /data
@@ -15,7 +17,7 @@ services:
     volumes:
       - wire-pod-data:/data
       - wire-pod-images:/images
-      - ../vector-w2b1:/vector-w2b1:ro
+      - ../../vector-w2b1:/vector-w2b1:ro
     healthcheck:
       test: [ "CMD", "curl", "-fsS", "http://localhost:8080/ok" ]
       interval: 30s
