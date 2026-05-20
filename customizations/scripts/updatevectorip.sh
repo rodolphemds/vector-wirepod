@@ -1,6 +1,5 @@
-# Le but de ce script est de résoudre l'adresse IPv4 de l'hôte "vector.local", de l'exporter en tant que variable d'environnement et de mettre à jour un fichier de configuration défini avec cette adresse IP. 
-
 #!/usr/bin/env bash
+# Le but de ce script est de résoudre l'adresse IPv4 de l'hôte "vector.local", de l'exporter en tant que variable d'environnement et de mettre à jour un fichier de configuration défini avec cette adresse IP. 
 set -euo pipefail
 
 # Variables de configuration
@@ -66,7 +65,7 @@ replace_json_ip() {
 }
 
 if ! IP=$(resolve_host_ipv4 "$VECTOR"); then
-    echo "Erreur : impossible de resoudre l'IPv4 pour l'hote $VECTOR" >&2
+    echo "Erreur : impossible de résoudre l'IPv4 pour l'hôte $VECTOR" >&2
     exit 1
 fi
 

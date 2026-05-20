@@ -53,15 +53,17 @@ RUN set -eux; \
 
 WORKDIR /src
 
-COPY chipper/go.mod chipper/go.sum ./chipper/
+COPY wire-pod/chipper/go.mod wire-pod/chipper/go.sum ./wire-pod/chipper/
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    cd chipper && go mod download
+    cd wire-pod/chipper && go mod download
 
-COPY . .
+COPY wire-pod ./wire-pod
+COPY customizations/docker/entrypoint.sh ./customizations/docker/entrypoint.sh
+COPY customizations/scripts/updatevectorip.sh ./customizations/scripts/updatevectorip.sh
 
-RUN find . -type f -name '*.sh' -exec sed -i 's/\r$//' {} +
+RUN find wire-pod customizations -type f -name '*.sh' -exec sed -i 's/\r$//' {} +
 
 RUN set -eux; \
     case "${TARGETARCH}" in \
@@ -98,7 +100,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
         export GOARM=${GOARM_VALUE}; \
     fi; \
     mkdir -p /build; \
-    cd /src/chipper; \
+    cd /src/wire-pod/chipper; \
     CC_VALUE=""; \
     CXX_VALUE=""; \
     if [ "${GOARCH_VALUE}" = "arm64" ]; then \
@@ -161,10 +163,11 @@ RUN apt-get update \
 WORKDIR /opt/wire-pod
 
 COPY --from=builder /opt/vosk/libvosk /opt/vosk/libvosk
-COPY --from=builder /src /opt/wire-pod
+COPY --from=builder /src/wire-pod /opt/wire-pod
 COPY --from=builder /build/chipper /opt/wire-pod/chipper/chipper
 COPY --from=builder /build/.wirepod-version /opt/wire-pod/.wirepod-version
-COPY scripts/updatevectorip.sh /opt/wire-pod/scripts/updatevectorip.sh
+COPY --from=builder /src/customizations/docker/entrypoint.sh /opt/wire-pod/docker/entrypoint.sh
+COPY --from=builder /src/customizations/scripts/updatevectorip.sh /opt/wire-pod/scripts/updatevectorip.sh
 
 RUN rm -rf .git && \
     chmod +x \
