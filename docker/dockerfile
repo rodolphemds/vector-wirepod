@@ -60,10 +60,10 @@ RUN --mount=type=cache,target=/go/pkg/mod \
     cd wire-pod/chipper && go mod download
 
 COPY wire-pod ./wire-pod
-COPY customizations/docker/entrypoint.sh ./customizations/docker/entrypoint.sh
-COPY customizations/scripts/updatevectorip.sh ./customizations/scripts/updatevectorip.sh
+COPY docker/entrypoint.sh ./docker/entrypoint.sh
+COPY scripts/ ./scripts/
 
-RUN find wire-pod customizations -type f -name '*.sh' -exec sed -i 's/\r$//' {} +
+RUN find wire-pod docker scripts -type f -name '*.sh' -exec sed -i 's/\r$//' {} +
 
 RUN set -eux; \
     case "${TARGETARCH}" in \
@@ -137,7 +137,6 @@ FROM ubuntu:22.04 AS runtime
 ARG COMMIT_SHA=unknown
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    WIREPOD_DATA_DIR=/data \
     LD_LIBRARY_PATH=/opt/vosk/libvosk
 
 RUN apt-get update \ 
@@ -166,14 +165,14 @@ COPY --from=builder /opt/vosk/libvosk /opt/vosk/libvosk
 COPY --from=builder /src/wire-pod /opt/wire-pod
 COPY --from=builder /build/chipper /opt/wire-pod/chipper/chipper
 COPY --from=builder /build/.wirepod-version /opt/wire-pod/.wirepod-version
-COPY --from=builder /src/customizations/docker/entrypoint.sh /opt/wire-pod/docker/entrypoint.sh
-COPY --from=builder /src/customizations/scripts/updatevectorip.sh /opt/wire-pod/scripts/updatevectorip.sh
+COPY --from=builder /src/docker/entrypoint.sh /opt/wire-pod/docker/entrypoint.sh
+COPY --from=builder /src/scripts /opt/wire-pod/scripts
 
 RUN rm -rf .git && \
     chmod +x \
         /opt/wire-pod/setup.sh \
         /opt/wire-pod/update.sh \
-        /opt/wire-pod/scripts/updatevectorip.sh \
+        /opt/wire-pod/scripts/*.sh \
         /opt/wire-pod/chipper/start.sh \
         /opt/wire-pod/docker/entrypoint.sh && \
     echo 'updatevectorip() { /opt/wire-pod/scripts/updatevectorip.sh "$@"; }' >> /etc/bash.bashrc && \

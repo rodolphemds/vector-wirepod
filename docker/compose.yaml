@@ -1,35 +1,41 @@
-name: escapepod
+name: vector_containers
+
 services:
   wire-pod:
     container_name: wire-pod
     hostname: escapepod
     build:
       context: ..
-      dockerfile: customizations/dockerfile
+      dockerfile: docker/dockerfile
     restart: unless-stopped
-    environment:
-      WIREPOD_DATA_DIR: /data
+    env_file:
+      - "../.env"
+      - "../../vector-w2b1/.env"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
       - "8084:8084"
     volumes:
-      - wire-pod-data:/data
-      - wire-pod-images:/images
+      - wirepod-data:/data
+      - wirepod-images:/images
       - type: bind
-        source: ${VECTOR_W2B1_PATH:-../../vector-w2b1}
+        source: ../../vector-w2b1
         target: /vector-w2b1
         read_only: true
     healthcheck:
-      test: [ "CMD", "curl", "-fsS", "http://localhost:8080/ok" ]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/ok"]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 30s
 
+networks:
+  default:
+    name: vector_containers_default
+
 volumes:
-  wire-pod-data:
+  wirepod-data:
     driver: local
-  wire-pod-images:
+  wirepod-images:
     driver: local

@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Variables de configuration
 VECTOR="vector.local"
-ENV_VAR_NAME="VECTOR_IP"
+ENV_VAR_NAME="ANKI_ROBOT_HOST"
 FILE_TO_UPDATE="/data/chipper/jdocs/botSdkInfo.json"
 SUBSTITUTION_FUNCTION='s/("ip_address"[[:space:]]*:[[:space:]]*")[^"]*(")/\1__IP__\2/'
 

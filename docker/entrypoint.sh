@@ -2,35 +2,10 @@
 set -euo pipefail
 
 APP_ROOT="/opt/wire-pod"
-DATA_ROOT="${WIREPOD_DATA_DIR:-/data}"
+DATA_ROOT="/data"
 DEFAULT_SOURCE="${APP_ROOT}/docker/default-source.sh"
 
 mkdir -p "${DATA_ROOT}"
-
-import_host_chipper_config() {
-    local host_cfg_dir="/vector-w2b1/chipper_config"
-    if [ ! -d "${host_cfg_dir}" ]; then
-        host_cfg_dir="${APP_ROOT}/host_chipper_config"
-    fi
-
-    if [ -d "${host_cfg_dir}" ]; then
-        mkdir -p "${DATA_ROOT}/chipper/session-certs"
-        mkdir -p "${DATA_ROOT}/chipper/jdocs"
-
-        # Copy certificate file (named like 0030263b)
-        if [ -f "${host_cfg_dir}/0030263b" ]; then
-            cp -a "${host_cfg_dir}/0030263b" "${DATA_ROOT}/chipper/session-certs/" || true
-        fi
-
-        # Copy jdocs and botSdkInfo into chipper/jdocs
-        if [ -f "${host_cfg_dir}/jdocs.json" ]; then
-            cp -a "${host_cfg_dir}/jdocs.json" "${DATA_ROOT}/chipper/jdocs/" || true
-        fi
-        if [ -f "${host_cfg_dir}/botSdkInfo.json" ]; then
-            cp -a "${host_cfg_dir}/botSdkInfo.json" "${DATA_ROOT}/chipper/jdocs/" || true
-        fi
-    fi
-}
 
 link_dir() {
     local rel_path="$1"
@@ -121,6 +96,31 @@ persist_files() {
     link_file_with_default chipper/source.sh "${DEFAULT_SOURCE}"
 }
 
+ensure_vosk_models() {
+    local fr_model_dir="${DATA_ROOT}/vosk/models/fr-FR/model"
+    local en_model_dir="${DATA_ROOT}/vosk/models/en-US/model"
+
+    if [ -d "${fr_model_dir}" ] && [ -d "${en_model_dir}" ]; then
+        return 0
+    fi
+
+    mkdir -p "${DATA_ROOT}/vosk/models/fr-FR" "${DATA_ROOT}/vosk/models/en-US"
+
+    if [ ! -d "${fr_model_dir}" ]; then
+        wget https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip -O /tmp/model.zip
+        unzip /tmp/model.zip -d "${DATA_ROOT}/vosk/models/fr-FR"
+        rm /tmp/model.zip
+        mv "${DATA_ROOT}/vosk/models/fr-FR/vosk-model-small-fr-0.22" "${DATA_ROOT}/vosk/models/fr-FR/model"
+    fi
+
+    if [ ! -d "${en_model_dir}" ]; then
+        wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip -O /tmp/model.zip
+        unzip /tmp/model.zip -d "${DATA_ROOT}/vosk/models/en-US"
+        rm /tmp/model.zip
+        mv "${DATA_ROOT}/vosk/models/en-US/vosk-model-small-en-us-0.15" "${DATA_ROOT}/vosk/models/en-US/model"
+    fi
+}
+
 update_export() {
     local key="$1"
     local value="$2"
@@ -161,15 +161,25 @@ apply_env_overrides() {
     fi
 }
 
-import_host_chipper_config
 persist_directories
 persist_files
+ensure_vosk_models
 
 if [ ! -e /root/.vosk ]; then
     ln -sfn /opt/vosk /root/.vosk
 fi
 
 apply_env_overrides
+
+if [ -x /opt/wire-pod/scripts/wirepod-config.sh ]; then
+    if ! /opt/wire-pod/scripts/wirepod-config.sh; then
+        echo "Error: wirepod config failed during startup" >&2
+        exit 1
+    fi
+else
+    echo "Error: wirepod config script not found" >&2
+    exit 1
+fi
 
 if [ -x /usr/local/bin/updatevectorip ]; then
     if ! /usr/local/bin/updatevectorip; then
