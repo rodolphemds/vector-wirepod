@@ -29,6 +29,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+    labels:
+      - dev.orbstack.http-port=8080
 
 networks:
   default:
